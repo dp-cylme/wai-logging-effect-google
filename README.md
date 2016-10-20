@@ -4,4 +4,6 @@ Middleware for [wai](https://www.stackage.org/lts-7.4/package/wai-3.2.1.1) which
 [Google Cloud Platform's](https://cloud.google.com/) [Logging](https://cloud.google.com/logging/docs/) service.
 
 
-[] Add field latency when @brendanhay update [gogol-logging](https://github.com/brendanhay/gogol)
+### TODO:
+
+[ ] Add field latency when @brendanhay update [gogol-logging](https://github.com/brendanhay/gogol)
