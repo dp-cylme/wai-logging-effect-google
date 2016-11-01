@@ -6,4 +6,4 @@ Middleware for [wai](https://www.stackage.org/lts-7.4/package/wai-3.2.1.1) which
 
 ### TODO:
 
-[ ] Add field latency when @brendanhay update [gogol-logging](https://github.com/brendanhay/gogol)
+[x] Add field latency when @brendanhay update [gogol-logging](https://github.com/brendanhay/gogol)
