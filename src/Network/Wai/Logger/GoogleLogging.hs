@@ -44,16 +44,17 @@ fillLogEntry :: NominalDiffTime -> UTCTime -> Request -> Response -> LogEntry
 fillLogEntry lat currentTime req res =
     (((Logging.logEntry & Logging.leHTTPRequest .~ (pure fillHTTPRequest))
                         & Logging.leSeverity .~ (pure (statusSeverity (Wai.responseStatus res))))
-                        & Logging.leTimestamp .~ (pure (showTimestamp currentTime)))
+                        & Logging.leTimestamp .~ (pure currentTime))
   where
     fillHTTPRequest =
-        ((((((((Logging.hTTPRequest) & Logging.httprReferer .~ (Text.decodeUtf8 <$> Wai.requestHeaderReferer req))
-                                     & Logging.httprRemoteIP .~ (pure (ipFromSockAddr (Wai.remoteHost req))))
-                                     & Logging.httprUserAgent .~ (Text.decodeUtf8 <$> Wai.requestHeaderUserAgent req))
-                                     & Logging.httprStatus .~ (pure (fromIntegral (statusCode (Wai.responseStatus res)))))
-                                     & Logging.httprRequestSize .~ (pure (rblToInt (Wai.requestBodyLength req))))
-                                     & Logging.httprRequestURL .~ (pure (Text.decodeUtf8 (Wai.rawPathInfo req))))
-                                     & Logging.httprRequestMethod .~ (pure (Text.decodeUtf8 (Wai.requestMethod req))))
+        (((((((((Logging.hTTPRequest) & Logging.httprLatency .~ (pure (fromRational (toRational lat))))
+                                      & Logging.httprReferer .~ (Text.decodeUtf8 <$> Wai.requestHeaderReferer req))
+                                      & Logging.httprRemoteIP .~ (pure (ipFromSockAddr (Wai.remoteHost req))))
+                                      & Logging.httprUserAgent .~ (Text.decodeUtf8 <$> Wai.requestHeaderUserAgent req))
+                                      & Logging.httprStatus .~ (pure (fromIntegral (statusCode (Wai.responseStatus res)))))
+                                      & Logging.httprRequestSize .~ (pure (rblToInt (Wai.requestBodyLength req))))
+                                      & Logging.httprRequestURL .~ (pure (Text.decodeUtf8 (Wai.rawPathInfo req))))
+                                      & Logging.httprRequestMethod .~ (pure (Text.decodeUtf8 (Wai.requestMethod req))))
 
 
 -- | Helper function for extract client IP address
@@ -63,30 +64,23 @@ ipFromSockAddr (SockAddrInet6 _ _ ha _) = showIPv6 ha
 ipFromSockAddr (SockAddrUnix sock) = Text.pack sock
 ipFromSockAddr (SockAddrCan i) = Text.pack (show i)
 
--- | A timestamp in RFC3339 UTC "Zulu" format, accurate to nanoseconds.
--- Example: "2014-10-02T15:01:23.045123456Z".
-showTimestamp :: UTCTime -> Text
-showTimestamp =
-    Text.pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S.%Q%Z"
-
-
 -- | Define log severity depend on response status.
 -- when 1xx then INFO
 --      2xx - DEFAULT
 --      3xx - NOTICE
 --      4xx - ERROR
 --      5xx - CRITICAL
-statusSeverity :: Status -> Text
+statusSeverity :: Status -> Logging.LogEntrySeverity
 statusSeverity (Status code _) =
     if code < 200
-        then "INFO"
+        then Logging.Info
         else if (code < 300)
-                 then "DEFAULT"
+                 then Logging.Default
                  else if (code < 400)
-                          then "NOTICE"
+                          then Logging.Notice
                           else if (code < 500)
-                                   then "ERROR"
-                                   else "CRITICAL"
+                                   then Logging.Error'
+                                   else Logging.Critical
 
 -- | Conver Wai RequestBodyLength to Integer
 -- when rbl is chuncked body we set size to 0 another return known length
