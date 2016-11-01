@@ -2,6 +2,17 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
+- location:
+    git: https://github.com/brendanhay/gogol.git
+    commit: c744fee403bbe7bbdadcf3fa67037ba11004f359
+  subdirs:
+  - core
+  - gogol
+  - gogol-logging
 extra-deps:
+- aeson-1.0.2.1
+- http-client-0.5.3.3
+- http-client-tls-0.3.3
+- http-conduit-2.2.3
 - logging-effect-1.1.0
 resolver: lts-7.4
